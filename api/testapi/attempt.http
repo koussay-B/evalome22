@@ -1,0 +1,52 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login as Candidate
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "candidate1",
+    "password": "Pa$$w0rd"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Start an Attempt
+# @name startAttempt
+POST {{api_HostAddress}}/api/attempt/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "campaignId": 1
+}
+
+### Store the attempt ID
+@attemptId = {{startAttempt.response.body.$.attemptId}}
+
+### 3. Answer a Question
+POST {{api_HostAddress}}/api/attempt/{{attemptId}}/answer
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "questionId": 1,
+    "selectedChoiceIds": [1],
+    "timeSpentSeconds": 15
+}
+
+### 4. Log a Tab Switch (Focus Lost)
+POST {{api_HostAddress}}/api/attempt/{{attemptId}}/tab-switch
+Authorization: Bearer {{token}}
+
+### 5. Submit Attempt
+# @name submitAttempt
+POST {{api_HostAddress}}/api/attempt/{{attemptId}}/submit
+Authorization: Bearer {{token}}
+
+### 6. Get Attempt Result
+GET {{api_HostAddress}}/api/attempt/{{attemptId}}/result
+Authorization: Bearer {{token}}
+Accept: application/json

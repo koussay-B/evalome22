@@ -1,0 +1,23 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Login with different credentials (if needed)
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "companyadmin",
+    "password": "Password"
+}

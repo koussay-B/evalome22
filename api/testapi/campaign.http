@@ -1,0 +1,77 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Get All Campaigns
+GET {{api_HostAddress}}/api/campaign
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 3. Create a New Campaign
+# @name createCampaign
+POST {{api_HostAddress}}/api/campaign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Summer Internship 2026",
+    "description": "Recruitment for summer interns",
+    "availableFrom": "2026-06-01T00:00:00Z",
+    "availableUntil": "2026-08-31T23:59:59Z",
+    "sendInviteEmail": true,
+    "reminderHoursBefore": 24
+}
+
+### Store the created campaign ID
+@campaignId = {{createCampaign.response.body.$.id}}
+
+### 4. Get Campaign Details (with candidates)
+GET {{api_HostAddress}}/api/campaign/{{campaignId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 5. Invite Candidates to Campaign
+POST {{api_HostAddress}}/api/campaign/{{campaignId}}/invite
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "userIds": [2, 3]
+}
+
+### 6. Update Campaign
+PUT {{api_HostAddress}}/api/campaign/{{campaignId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Updated Summer Internship 2026",
+    "description": "Updated recruitment description",
+    "availableFrom": "2026-06-01T00:00:00Z",
+    "availableUntil": "2026-09-15T23:59:59Z",
+    "sendInviteEmail": true,
+    "reminderHoursBefore": 12
+}
+
+### 7. Update Campaign Status
+# Status: 0=Draft, 1=Active, 2=Closed
+PUT {{api_HostAddress}}/api/campaign/{{campaignId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+1
+
+### 8. Delete Campaign (Only if Draft)
+DELETE {{api_HostAddress}}/api/campaign/{{campaignId}}
+Authorization: Bearer {{token}}

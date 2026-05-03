@@ -1,0 +1,80 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "companyadmin",
+    "password": "Pa$$w0rd"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Get All Questionnaires
+GET {{api_HostAddress}}/api/questionnaire
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 3. Create a New Questionnaire (Draft)
+# @name createQuestionnaire
+POST {{api_HostAddress}}/api/questionnaire
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Full Stack Developer Assessment",
+    "description": "Evaluation of full stack skills",
+    "instructions": "Answer all questions. You have 30 minutes.",
+    "passingScorePercent": 70,
+    "globalDurationMinutes": 30,
+    "showTimer": true,
+    "maxAttempts": 1
+}
+
+### Store the created questionnaire ID
+@questionnaireId = {{createQuestionnaire.response.body.$.id}}
+
+### 4. Add Questions to Questionnaire
+# Note: Questionnaire must not be published
+POST {{api_HostAddress}}/api/questionnaire/{{questionnaireId}}/questions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+[
+    { "questionId": 1, "order": 1, "weight": 1 },
+    { "questionId": 2, "order": 2, "weight": 2 }
+]
+
+### 5. Get Questionnaire Details (with questions)
+GET {{api_HostAddress}}/api/questionnaire/{{questionnaireId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 6. Update Questionnaire
+PUT {{api_HostAddress}}/api/questionnaire/{{questionnaireId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Advanced Full Stack Assessment",
+    "description": "Updated evaluation for senior candidates",
+    "instructions": "Be thorough.",
+    "passingScorePercent": 80,
+    "globalDurationMinutes": 45,
+    "showTimer": true,
+    "maxAttempts": 2,
+    "randomizeQuestions": true
+}
+
+### 7. Publish Questionnaire
+# Note: Must have at least 1 question
+PUT {{api_HostAddress}}/api/questionnaire/{{questionnaireId}}/publish
+Authorization: Bearer {{token}}
+
+### 8. Delete Questionnaire
+# Note: Fails if questionnaire has active campaigns
+DELETE {{api_HostAddress}}/api/questionnaire/{{questionnaireId}}
+Authorization: Bearer {{token}}

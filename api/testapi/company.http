@@ -1,0 +1,40 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login as Admin
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Create a New Company (Admin only)
+# @name createCompany
+GET  {{api_HostAddress}}/api/company?pageNumber=1&pageSize=20&orderBy=name
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Acme Corp",
+    "logo": "https://example.com/acme-logo.png",
+    "address": "123 Industrial Way"
+}
+
+### Store the created company ID
+@companyId = {{createCompany.response.body.$.id}}
+
+### 3. Update Company (Admin or CompanyAdmin)
+PUT {{api_HostAddress}}/api/company/{{companyId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Acme Global",
+    "logo": "https://example.com/acme-global-logo.png",
+    "address": "456 Global Plaza"
+}

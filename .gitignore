@@ -1,0 +1,20 @@
+# Ignore everything inside api/wwwroot but keep the directory itself
+api/wwwroot/*
+!api/wwwroot/.gitkeep
+
+# Common .NET ignores
+[Bb]in/
+[Oo]bj/
+api/bin/
+api/obj/
+*.user
+appsettings.Development.json
+
+# Common Node ignores for client
+node_modules/
+dist/
+.DS_Store
+
+
+.claude
+api/logs/*

@@ -1,0 +1,29 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login as Admin/Formateur
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "companyadmin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Get Report by Attempt ID
+GET {{api_HostAddress}}/api/report/attempt/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 3. Get Report by Campaign ID
+GET {{api_HostAddress}}/api/report/campaign/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 4. Get All Attempts by Candidate ID
+GET {{api_HostAddress}}/api/report/candidate/2
+Authorization: Bearer {{token}}
+Accept: application/json

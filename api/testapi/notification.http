@@ -1,0 +1,39 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login (Admin)
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Get My Notifications
+GET {{api_HostAddress}}/api/notification
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 3. Send Test Notification (Admin only)
+POST {{api_HostAddress}}/api/notification/test/8
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Welcome to CandidatApp",
+    "body": "This is a test notification sent from the API test file.",
+    "type": 0,
+    "actionUrl": "/dashboard"
+}
+
+### 4. Mark Notification as Read
+PATCH {{api_HostAddress}}/api/notification/1/read
+Authorization: Bearer {{token}}
+
+### 5. Mark All Notifications as Read
+PATCH {{api_HostAddress}}/api/notification/read-all
+Authorization: Bearer {{token}}

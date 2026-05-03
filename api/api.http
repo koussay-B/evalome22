@@ -1,0 +1,41 @@
+@api_HostAddress = http://localhost:5259
+
+GET {{api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "Password"
+}
+
+###
+
+@token = {{login.response.body.$.token}}
+
+POST {{api_HostAddress}}/api/company
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "My New Company",
+    "logo": "https://example.com/logo.png",
+    "address": "123 Tech Valley"
+}
+
+###
+
+PUT {{api_HostAddress}}/api/company/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Updated Company Name",
+    "logo": "https://example.com/updated_logo.png",
+    "address": "456 Tech Valley"
+}

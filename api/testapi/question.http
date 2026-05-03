@@ -1,0 +1,73 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "companyadmin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Get All Questions in Company
+GET {{api_HostAddress}}/api/question
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 3. Create a New Question
+# @name createQuestion
+POST {{api_HostAddress}}/api/question
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "What is React?",
+    "explanation": "React is a JavaScript library for building UI",
+    "hint": "Think about components",
+    "type": 0,
+    "complexity": 1,
+    "timeLimitSeconds": 60,
+    "points": 10,
+    "themeId": 1,
+    "choices": [
+        { "text": "A library", "isCorrect": true, "order": 1 },
+        { "text": "A fruit", "isCorrect": false, "order": 2 }
+    ]
+}
+
+### Store the created question ID
+@questionId = {{createQuestion.response.body.$.id}}
+
+### 4. Get Question by ID
+GET {{api_HostAddress}}/api/question/{{questionId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 5. Get Questions by Theme
+GET {{api_HostAddress}}/api/question/theme/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 6. Update Question
+PUT {{api_HostAddress}}/api/question/{{questionId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "What exactly is React?",
+    "explanation": "React is a popular UI library",
+    "hint": "Check Facebook labs",
+    "type": 0,
+    "complexity": 2,
+    "timeLimitSeconds": 45,
+    "points": 15,
+    "themeId": 1
+}
+
+### 7. Delete Question
+DELETE {{api_HostAddress}}/api/question/{{questionId}}
+Authorization: Bearer {{token}}

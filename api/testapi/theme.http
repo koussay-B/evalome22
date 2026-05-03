@@ -1,0 +1,63 @@
+@api_HostAddress = http://localhost:5259
+
+### 1. Login to get token
+# @name login
+POST {{api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "Password"
+}
+
+### Store the token
+@token = {{login.response.body.$.token}}
+
+### 2. Get Root Themes
+# Returns all themes that don't have a parent
+GET {{api_HostAddress}}/api/theme/roots
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 3. Create a New Theme
+# @name createTheme
+POST {{api_HostAddress}}/api/theme
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Frontend Development",
+    "description": "Basic concepts of frontend development",
+    "icon": "code",
+    "order": 1
+}
+
+### Store the created theme ID
+@themeId = {{createTheme.response.body.$.id}}
+
+### 4. Get Theme by ID
+GET {{api_HostAddress}}/api/theme/{{themeId}}
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 5. Get Children of a Theme
+GET {{api_HostAddress}}/api/theme/{{themeId}}/children
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### 6. Update a Theme
+PUT {{api_HostAddress}}/api/theme/{{themeId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "name": "Frontend Frameworks",
+    "description": "Updated description for frontend frameworks",
+    "icon": "star",
+    "order": 2
+}
+
+### 7. Delete a Theme
+# Note: Fails if theme has associated questions
+DELETE {{api_HostAddress}}/api/theme/{{themeId}}
+Authorization: Bearer {{token}}
