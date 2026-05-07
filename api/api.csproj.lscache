@@ -62,6 +62,7 @@ Controllers/
  AuthController.cs
  BaseApiController.cs
  CampaignController.cs
+ CampaignReminderWorker.cs
  CertificateController.cs
  CompanyController.cs
  FallbackController.cs
@@ -173,6 +174,7 @@ dtos/request/
  RejectCompanyRequestDto.cs
  UpdateCompanyDto.cs
  UpdateProfileDto.cs
+ UpdateQuestionnaireDto.cs
 dtos/response/
  ApiException.cs
  CompanyDto.cs

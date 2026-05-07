@@ -36,7 +36,7 @@ export interface CreateQuestionnairePayload {
   coverImageUrl?: string | null
 }
 
-export type UpdateQuestionnairePayload = Partial<CreateQuestionnairePayload>
+export type UpdateQuestionnairePayload = Pick<CreateQuestionnairePayload, 'title' | 'description'>
 
 export interface AddQuestionToQuestionnairePayload {
   questionId:   number

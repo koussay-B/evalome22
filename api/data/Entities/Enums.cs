@@ -1,4 +1,5 @@
 using System;
+using api.data.Entities;
 
 namespace api.data.Entities
 {

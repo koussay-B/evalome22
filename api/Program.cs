@@ -63,7 +63,6 @@ builder.Services.AddScoped<api.services.EmailService.IEmailService, api.services
 var app = builder.Build();
 
 // --- MIDDLEWARE PIPELINE ---
-
 app.UseCors("AllowClient");
 
 // Custom exception handling middleware

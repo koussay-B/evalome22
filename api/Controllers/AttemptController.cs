@@ -40,6 +40,8 @@ namespace api.Controllers
             var user = await _repo.UserManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            await _repo.Campaign.ActivateScheduledCampaigns(DateTime.UtcNow);
+
             var campaign = await _repo.Campaign.GetWithCandidates(request.CampaignId);
             if (campaign == null) return NotFound("Campaign not found.");
             if (campaign.CompanyId != user.CompanyId) return Forbid();

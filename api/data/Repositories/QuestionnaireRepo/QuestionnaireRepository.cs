@@ -21,6 +21,7 @@ namespace api.data.Repositories.QuestionnaireRepo
                 .Include(q => q.QuestionnaireQuestions)
                     .ThenInclude(qq => qq.Question)
                         .ThenInclude(q => q.Choices)
+                .Include(q => q.CampaignQuestionnaires.Where(cq => cq.Enable))
                 .FirstOrDefaultAsync(q => q.Id == id && q.Enable);
         }
 

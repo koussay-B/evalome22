@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .reminder-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: Arial, sans-serif;
+        }
+        .highlight {
+            color: #d9534f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bonjour {{candidateName}},</h2>
+    <p>Vous avez été invité à participer à l'évaluation : <strong>{{campaignName}}</strong>.</p>
+    
+    <div class="reminder-box">
+        <p>📅 <strong>Date du test :</strong> {{startDate}}</p>
+        <p>⏳ <strong>Temps restant :</strong> <span class="highlight">{{timeUntilTest}}</span></p>
+    </div>
+
+    <p>Vous pouvez accéder au test via le bouton ci-dessous dès qu'il sera disponible :</p>
+    <a href="{{actionUrl}}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+        Accéder à mon espace
+    </a>
+
+    <p>Cordialement,<br> , l'équipe de {{companyName}}</p>
+</body>
+</html>

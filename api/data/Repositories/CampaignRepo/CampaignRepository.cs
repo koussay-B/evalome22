@@ -52,6 +52,40 @@ namespace api.data.Repositories.CampaignRepo
                 .ToListAsync();
         }
 
+        public async Task<int> CloseExpiredActiveCampaigns(DateTime utcNow)
+        {
+            return await _context.Campaigns
+                .Where(c => c.Enable
+                            && c.Status == CampaignStatus.Active
+                            && c.AvailableUntil <= utcNow)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.Status, CampaignStatus.Closed)
+                    .SetProperty(c => c.UpdatedAt, utcNow));
+        }
+
+        public async Task<int> CloseExpiredScheduledCampaigns(DateTime utcNow)
+        {
+            return await _context.Campaigns
+                .Where(c => c.Enable
+                            && c.Status == CampaignStatus.Scheduled
+                            && c.AvailableUntil <= utcNow)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.Status, CampaignStatus.Closed)
+                    .SetProperty(c => c.UpdatedAt, utcNow));
+        }
+
+        public async Task<int> ActivateScheduledCampaigns(DateTime utcNow)
+        {
+            return await _context.Campaigns
+                .Where(c => c.Enable
+                            && c.Status == CampaignStatus.Scheduled
+                            && c.AvailableFrom <= utcNow
+                            && c.AvailableUntil > utcNow)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.Status, CampaignStatus.Active)
+                    .SetProperty(c => c.UpdatedAt, utcNow));
+        }
+
         public async Task<bool> RemoveCandidate(int campaignId, int candidateId)
         {
             var cc = await _context.CampaignCandidates

@@ -116,22 +116,18 @@ function typeColor(type: NotificationType): string {
   return map[type] ?? 'bg-muted-foreground'
 }
 
-// Function msala7a 100%
+// Function qui retourne date 
 function formatDate(dateStr: string | Date): string {
   if (!dateStr) return ''
   
   try {
-    // 1. Converti el string l-Date object (format ISO/UTC jey mel C#)
     let date = typeof dateStr === 'string' ? parseISO(dateStr) : dateStr
     
-    // 2. FIX OFFSET: N-riga7lou el far9 mta' tounes (GMT+1) 
-    // bch ma i-jich m-o5er sa3tin 3la wa9t tawa
     const offset = new Date().getTimezoneOffset() * 60000;
     date = new Date(date.getTime() - offset); 
 
     if (isNaN(date.getTime())) return 'Date invalide'
 
-    // 3. Raja3 el wa9t kima "Just now" walla "2m ago" 3la 7asb loughat el site
     return formatDistanceToNow(date, { 
       addSuffix: true,
       locale: locale.value === 'fr' ? fr : enUS 

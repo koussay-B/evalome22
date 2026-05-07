@@ -43,7 +43,7 @@
             <div class="flex flex-wrap items-center gap-3 mt-2">
               <span class="flex items-center gap-1 text-xs text-muted-foreground">
                 <Calendar class="w-3.5 h-3.5" />
-                {{ campaign.startDate }} → {{ campaign.endDate }}
+                {{ formatDateTime(campaign.startDate) }} → {{ formatDateTime(campaign.endDate) }}
               </span>
               <span :class="statusBadge(campaign.status)" class="text-[10px]  uppercase tracking-wide px-2 py-0.5 rounded-full">
                 {{ campaign.status }}
@@ -206,6 +206,7 @@ const startError = ref<string | null>(null)
 const isExpired = computed(() => {
   if (!campaign.value) return false
   const until = new Date(campaign.value.endDate)
+  if (Number.isNaN(until.getTime())) return false
   // Check if current date is strictly after AvailableUntil
   return new Date() > until
 })
@@ -294,5 +295,18 @@ function attemptBadge(s: string): string {
     Abandoned:  'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
   }
   return map[s] ?? 'bg-muted text-muted-foreground'
+}
+
+function formatDateTime(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 </script>

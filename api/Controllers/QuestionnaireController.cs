@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.data.Entities;
 using api.data.Repositories;
+using api.dtos.request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,10 +87,15 @@ namespace api.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "CompanyAdmin,Formateur")]
-        public async Task<IActionResult> UpdateQuestionnaire(int id, [FromBody] Questionnaire questionnaireIn)
+        public async Task<IActionResult> UpdateQuestionnaire(int id, [FromBody] UpdateQuestionnaireDto questionnaireIn)
         {
             var user = await _repo.UserManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(questionnaireIn.Title))
+            {
+                return BadRequest("Questionnaire title is required.");
+            }
 
             var questionnaire = await _repo.Questionnaire.GetWithQuestions(id);
             if (questionnaire == null) return NotFound();
@@ -100,10 +106,10 @@ namespace api.Controllers
                 return BadRequest("Cannot edit a published questionnaire that is attached to campaigns.");
             }
 
-            questionnaire.Title       = questionnaireIn.Title;
-            questionnaire.Description = questionnaireIn.Description;
-            questionnaire.Instructions = questionnaireIn.Instructions;
-            questionnaire.CoverImageUrl = questionnaireIn.CoverImageUrl;
+            questionnaire.Title = questionnaireIn.Title.Trim();
+            questionnaire.Description = string.IsNullOrWhiteSpace(questionnaireIn.Description)
+                ? null
+                : questionnaireIn.Description.Trim();
 
             var updated = await _repo.Questionnaire.Update(questionnaire);
             return Ok(updated);
@@ -158,7 +164,7 @@ namespace api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "CompanyAdmin")]
+        [Authorize(Roles = "CompanyAdmin,Formateur")]
         public async Task<IActionResult> DeleteQuestionnaire(int id)
         {
             var user = await _repo.UserManager.GetUserAsync(User);

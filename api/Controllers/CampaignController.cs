@@ -429,6 +429,9 @@ namespace api.Controllers
             public string EndDate             { get; set; } = string.Empty;
             public string Status              { get; set; } = string.Empty;
             public string CandidateStatus     { get; set; } = string.Empty;
+            public string TestStatus          { get; set; } = string.Empty;
+            public string? LastAttemptStatus  { get; set; }
+            public bool    Passed             { get; set; }
             public int    QuestionnairesCount { get; set; }
         }
 
@@ -439,21 +442,81 @@ namespace api.Controllers
             var user = await _repo.UserManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            var now = DateTime.UtcNow;
+            await _repo.Campaign.ActivateScheduledCampaigns(now);
+            await _repo.Campaign.CloseExpiredActiveCampaigns(now);
+            await _repo.Campaign.CloseExpiredScheduledCampaigns(now);
+
             var links = await _db.CampaignCandidates
                 .Where(cc => cc.CandidateId == user.Id && cc.Enable)
                 .Include(cc => cc.Campaign)
                     .ThenInclude(c => c!.CampaignQuestionnaires)
                 .ToListAsync();
 
-            var result = links.Select(cc => new MyCampaignDto
+            var campaignIds = links.Select(cc => cc.CampaignId).ToList();
+            var attempts = await _db.CandidateAttempts
+                .Where(a => a.CandidateId == user.Id && campaignIds.Contains(a.CampaignId) && a.Enable)
+                .OrderByDescending(a => a.StartedAt)
+                .ToListAsync();
+
+            var expiredInProgressAttempts = attempts
+                .Where(a => a.Status == AttemptStatus.InProgress
+                            && a.ExpiresAt.HasValue
+                            && a.ExpiresAt.Value <= now)
+                .ToList();
+
+            if (expiredInProgressAttempts.Any())
             {
-                CampaignId          = cc.CampaignId,
-                Name                = cc.Campaign?.Name ?? string.Empty,
-                StartDate           = cc.Campaign?.AvailableFrom.ToString("yyyy-MM-dd") ?? string.Empty,
-                EndDate             = cc.Campaign?.AvailableUntil.ToString("yyyy-MM-dd") ?? string.Empty,
-                Status              = cc.Campaign?.Status.ToString() ?? string.Empty,
-                CandidateStatus     = cc.Status.ToString(),
-                QuestionnairesCount = cc.Campaign?.CampaignQuestionnaires.Count(cq => cq.Enable) ?? 0,
+                foreach (var attempt in expiredInProgressAttempts)
+                {
+                    attempt.Status = AttemptStatus.TimedOut;
+                    attempt.UpdatedAt = now;
+                }
+
+                await _db.SaveChangesAsync();
+            }
+
+            var result = links.Select(cc =>
+            {
+                var campaignAttempts = attempts.Where(a => a.CampaignId == cc.CampaignId).ToList();
+                var latestAttempt = campaignAttempts.FirstOrDefault();
+                var requiredQuestionnaireIds = cc.Campaign?.CampaignQuestionnaires
+                    .Where(cq => cq.Enable && cq.IsRequired)
+                    .Select(cq => cq.QuestionnaireId)
+                    .ToHashSet() ?? [];
+
+                var passedQuestionnaireIds = campaignAttempts
+                    .Where(a => a.Status == AttemptStatus.Submitted && a.Passed && a.QuestionnaireId.HasValue)
+                    .Select(a => a.QuestionnaireId!.Value)
+                    .ToHashSet();
+
+                var passed = cc.Status == CampaignCandidateStatus.Completed
+                             || (requiredQuestionnaireIds.Count > 0
+                                 && requiredQuestionnaireIds.All(qid => passedQuestionnaireIds.Contains(qid)));
+
+                var testStatus = passed
+                    ? "Passed"
+                    : latestAttempt?.Status == AttemptStatus.TimedOut
+                        ? "TimedOut"
+                        : latestAttempt?.Status == AttemptStatus.Abandoned
+                            ? "Abandoned"
+                            : latestAttempt?.Status == AttemptStatus.InProgress
+                                ? "InProgress"
+                                : cc.Campaign?.Status.ToString() ?? cc.Status.ToString();
+
+                return new MyCampaignDto
+                {
+                    CampaignId          = cc.CampaignId,
+                    Name                = cc.Campaign?.Name ?? string.Empty,
+                    StartDate           = cc.Campaign?.AvailableFrom.ToString("O") ?? string.Empty,
+                    EndDate             = cc.Campaign?.AvailableUntil.ToString("O") ?? string.Empty,
+                    Status              = cc.Campaign?.Status.ToString() ?? string.Empty,
+                    CandidateStatus     = cc.Status.ToString(),
+                    TestStatus          = testStatus,
+                    LastAttemptStatus   = latestAttempt?.Status.ToString(),
+                    Passed              = passed,
+                    QuestionnairesCount = cc.Campaign?.CampaignQuestionnaires.Count(cq => cq.Enable) ?? 0,
+                };
             }).ToList();
 
             return Ok(result);
@@ -498,6 +561,8 @@ namespace api.Controllers
         {
             var user = await _repo.UserManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+
+            await _repo.Campaign.ActivateScheduledCampaigns(DateTime.UtcNow);
 
             var link = await _db.CampaignCandidates
                 .Where(cc => cc.CandidateId == user.Id && cc.CampaignId == id && cc.Enable)
@@ -553,8 +618,8 @@ namespace api.Controllers
                 CampaignId      = id,
                 Name            = link.Campaign.Name,
                 Description     = link.Campaign.Description ?? string.Empty,
-                StartDate       = link.Campaign.AvailableFrom.ToString("yyyy-MM-dd"),
-                EndDate         = link.Campaign.AvailableUntil.ToString("yyyy-MM-dd"),
+                StartDate       = link.Campaign.AvailableFrom.ToString("O"),
+                EndDate         = link.Campaign.AvailableUntil.ToString("O"),
                 Status          = link.Campaign.Status.ToString(),
                 CandidateStatus = link.Status.ToString(),
                 Questionnaires  = questionnaires,

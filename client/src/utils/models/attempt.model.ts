@@ -78,6 +78,9 @@ export interface MyCampaignItem {
   endDate:             string
   status:              string   // CampaignStatus
   candidateStatus:     string   // CampaignCandidateStatus
+  testStatus:          string
+  lastAttemptStatus?:  string | null
+  passed:              boolean
   questionnairesCount: number
 }
 
